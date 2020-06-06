@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">InAppUpdate</string>
+    <string name="str_no_of_attempt">No of attempts remaining: </string>
 </resources>
