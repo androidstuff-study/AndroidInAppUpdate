@@ -43,37 +43,25 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         appUpdateManager = AppUpdateManagerFactory.create(getApplicationContext());
-
-        installStateUpdatedListener = new
-                InstallStateUpdatedListener() {
-                    @Override
-                    public void onStateUpdate(InstallState state) {
-                        if (state.installStatus() == InstallStatus.DOWNLOADED){
-                            popupSnackbarForCompleteUpdate();
-                        } else if (state.installStatus() == InstallStatus.INSTALLED){
-                            removeInstallStateUpdateListener();
-                        } else {
-                            Log.i(TAG, "InstallStateUpdatedListener: state: " + state.installStatus());
-                        }
-                    }
-                };
+        installStateUpdatedListener = state -> {
+            if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                popupSnackbarForCompleteUpdate();
+            } else if (state.installStatus() == InstallStatus.INSTALLED) {
+                removeInstallStateUpdateListener();
+            } else {
+                Log.i(TAG, "InstallStateUpdatedListener: state: " + state.installStatus());
+            }
+        };
         appUpdateManager.registerListener(installStateUpdatedListener);
         checkUpdate();
-
         Name = findViewById(R.id.etName);
-        Password = (EditText)findViewById(R.id.etPassword);
-        Info = (TextView)findViewById(R.id.tvInfo);
-        Login = (Button)findViewById(R.id.btnlogin);
+        Password = (EditText) findViewById(R.id.etPassword);
+        Info = (TextView) findViewById(R.id.tvInfo);
+        Login = (Button) findViewById(R.id.btnlogin);
         Info.setText("No of attempts remaining: 5");
 
-        Login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                validate(Name.getText().toString(), Password.getText().toString());
-            }
-        });
+        Login.setOnClickListener(v -> validate(Name.getText().toString(), Password.getText().toString()));
     }
 
     private void removeInstallStateUpdateListener() {
@@ -82,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void  checkUpdate () {
+    private void checkUpdate() {
         // Returns an intent object that you use to check for update
         Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
         // checks that the platform will allow the specified type of update:
@@ -99,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void startUpdateFlow (AppUpdateInfo appUpdateInfo, int updateType, int reqCode) {
+    private void startUpdateFlow(AppUpdateInfo appUpdateInfo, int updateType, int reqCode) {
         try {
             appUpdateManager.startUpdateFlowForResult(appUpdateInfo, updateType, this, reqCode);
         } catch (IntentSender.SendIntentException e) {
@@ -108,37 +96,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
-        if(requestCode == FLEXIBLE_APP_UPDATE_REQ_CODE){
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FLEXIBLE_APP_UPDATE_REQ_CODE) {
             if (resultCode == RESULT_CANCELED) {
                 // DO NOTHING
                 Log.d("", "Update canceled by user! Result Code: " + resultCode);
-            } else if (resultCode == RESULT_OK){
+            } else if (resultCode == RESULT_OK) {
                 Log.d("", "Update success! Result Code: " + resultCode);
             } else {
-                Log.d ("", "Update Failed! Result Code: " + resultCode);
+                Log.d("", "Update Failed! Result Code: " + resultCode);
                 checkUpdate();
             }
         }
     }
 
-    private  void validate(String userName, String userPassword){
-        if((userName.equals("Admin")) && (userPassword.equals("1234"))){
+    private void validate(String userName, String userPassword) {
+        if ((userName.equals("Admin")) && (userPassword.equals("1234"))) {
             Intent intent = new Intent(MainActivity.this, SecondActivity.class);
             startActivity(intent);
-        }else{
+        } else {
             counter--;
-            Info.setText("No of attempts remaining:"+ String.valueOf(counter));
-            if(counter ==  0){
+            Info.setText("No of attempts remaining:" + String.valueOf(counter));
+            if (counter == 0) {
                 Login.setEnabled(false);
             }
         }
     }
 
     private void popupSnackbarForCompleteUpdate() {
-
-
-
         Snackbar snackbar =
                 Snackbar.make(
                         (CoordinatorLayout) findViewById(R.id.snackbar_layout),
@@ -146,12 +131,10 @@ public class MainActivity extends AppCompatActivity {
                         Snackbar.LENGTH_INDEFINITE);
 
         snackbar.setAction("Install", view -> {
-            if (appUpdateManager != null){
+            if (appUpdateManager != null) {
                 appUpdateManager.completeUpdate();
             }
         });
-
-
         snackbar.setActionTextColor(getResources().getColor(R.color.installColor));
         snackbar.show();
     }
